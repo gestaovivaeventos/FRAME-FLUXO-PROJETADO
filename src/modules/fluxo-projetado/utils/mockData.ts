@@ -275,21 +275,17 @@ export interface ReceitaAnual {
 export function gerarProjecaoPorAno(): ReceitaAnual[] {
   const anoAtual = new Date().getFullYear();
   
-  // Valores mockados com variação realista por ano
-  const valoresPorAno: Record<number, number> = {
-    2026: 892000,
-    2027: 1250000,
-    2028: 980000,
-    2029: 720000,
-    2030: 450000,
-  };
-  
   const anos: ReceitaAnual[] = [];
   for (let i = 0; i < 5; i++) {
     const ano = anoAtual + i;
+    // Soma dos resumos de Fundos da Carteira + Novos Fundos para cada ano
+    const resumoCarteira = gerarResumoPorAno(ano);
+    const resumoNovos = gerarResumoNovosFundosPorAno(ano);
+    const valorTotal = resumoCarteira.receitaTotalProjetada + resumoNovos.receitaTotalProjetada;
+    
     anos.push({
       ano,
-      valor: valoresPorAno[ano] || Math.floor(300000 + Math.random() * 700000),
+      valor: valorTotal,
       isAtual: ano === anoAtual,
     });
   }
@@ -298,51 +294,38 @@ export function gerarProjecaoPorAno(): ReceitaAnual[] {
 }
 
 // ============================================
-// Resumo por Ano (dados mockados variados)
+// Resumo por Ano (dados mockados variados) - Fundos da Carteira
 // ============================================
 
 export function gerarResumoPorAno(ano: number): ResumoProjecao {
-  // Multiplicadores por ano para simular variação
-  const multiplicadores: Record<number, number> = {
-    2026: 1.0,
-    2027: 1.4,
-    2028: 1.1,
-    2029: 0.8,
-    2030: 0.5,
+  // Valores base por ano - Fundos da Carteira (fundos existentes)
+  // Ano atual tem mais, anos futuros vão diminuindo pois fundos vão fechando
+  const dadosPorAno: Record<number, { feeAntecipacao: number; feeFechamento: number; margem: number }> = {
+    2026: { feeAntecipacao: 320000, feeFechamento: 210000, margem: 120000 },
+    2027: { feeAntecipacao: 280000, feeFechamento: 420000, margem: 280000 },
+    2028: { feeAntecipacao: 150000, feeFechamento: 380000, margem: 220000 },
+    2029: { feeAntecipacao: 80000, feeFechamento: 250000, margem: 140000 },
+    2030: { feeAntecipacao: 30000, feeFechamento: 120000, margem: 70000 },
   };
   
-  const mult = multiplicadores[ano] || 1.0;
+  const dados = dadosPorAno[ano] || { feeAntecipacao: 50000, feeFechamento: 100000, margem: 60000 };
   
-  // Valores base (2026) - Fundos da Carteira
-  const baseValues = {
-    receitaTotalProjetada: 892000,
-    receitaProjetadaFee: 340000,
-    receitaProjetadaFeeAntecipacao: 204000, // 60% do FEE
-    receitaProjetadaFeeFechamento: 136000, // 40% do FEE
-    receitaProjetadaConviteExtra: 285000,
-    receitaProjetadaMargemFechamento: 267000,
-    feeJaRecebido: 180000,
-    feeAReceber: 160000,
-    convitesExtrasVendidos: 372500,
+  // Receita Total = soma das 3 fontes de receita
+  const receitaTotal = dados.feeAntecipacao + dados.feeFechamento + dados.margem;
+  
+  return {
+    receitaTotalProjetada: receitaTotal,
+    receitaProjetadaFee: dados.feeAntecipacao + dados.feeFechamento,
+    receitaProjetadaFeeAntecipacao: dados.feeAntecipacao,
+    receitaProjetadaFeeFechamento: dados.feeFechamento,
+    receitaProjetadaConviteExtra: 0,
+    receitaProjetadaMargemFechamento: dados.margem,
+    feeJaRecebido: 0,
+    feeAReceber: dados.feeAntecipacao + dados.feeFechamento,
+    convitesExtrasVendidos: 0,
     margemMediaAplicada: 5.1,
     fundosAtivos: 8,
     fundosFechamentoAnoAtual: 4,
-  };
-  
-  // Aplicar multiplicador e variação
-  return {
-    receitaTotalProjetada: Math.round(baseValues.receitaTotalProjetada * mult),
-    receitaProjetadaFee: Math.round(baseValues.receitaProjetadaFee * mult),
-    receitaProjetadaFeeAntecipacao: Math.round(baseValues.receitaProjetadaFeeAntecipacao * mult),
-    receitaProjetadaFeeFechamento: Math.round(baseValues.receitaProjetadaFeeFechamento * mult),
-    receitaProjetadaConviteExtra: Math.round(baseValues.receitaProjetadaConviteExtra * mult),
-    receitaProjetadaMargemFechamento: Math.round(baseValues.receitaProjetadaMargemFechamento * mult),
-    feeJaRecebido: ano <= new Date().getFullYear() ? Math.round(baseValues.feeJaRecebido * mult) : 0,
-    feeAReceber: Math.round(baseValues.feeAReceber * mult),
-    convitesExtrasVendidos: Math.round(baseValues.convitesExtrasVendidos * mult),
-    margemMediaAplicada: baseValues.margemMediaAplicada,
-    fundosAtivos: Math.round(baseValues.fundosAtivos * mult),
-    fundosFechamentoAnoAtual: Math.max(1, Math.round(baseValues.fundosFechamentoAnoAtual * mult)),
   };
 }
 
@@ -351,47 +334,34 @@ export function gerarResumoPorAno(ano: number): ResumoProjecao {
 // ============================================
 
 export function gerarResumoNovosFundosPorAno(ano: number): ResumoProjecao {
-  // Multiplicadores diferentes para novos fundos (crescimento esperado)
-  const multiplicadores: Record<number, number> = {
-    2026: 0.3,  // Ano atual - poucos novos fundos ainda
-    2027: 0.6,  // Crescimento gradual
-    2028: 0.9,  // Expansão
-    2029: 1.2,  // Maturidade
-    2030: 1.5,  // Consolidação
+  // Valores base por ano - Novos Fundos (prospecção)
+  // Ano atual tem poucos, anos futuros crescem com novos fechamentos
+  const dadosPorAno: Record<number, { feeAntecipacao: number; feeFechamento: number; margem: number }> = {
+    2026: { feeAntecipacao: 45000, feeFechamento: 35000, margem: 20000 },
+    2027: { feeAntecipacao: 120000, feeFechamento: 25000, margem: 15000 },
+    2028: { feeAntecipacao: 200000, feeFechamento: 80000, margem: 50000 },
+    2029: { feeAntecipacao: 280000, feeFechamento: 150000, margem: 90000 },
+    2030: { feeAntecipacao: 350000, feeFechamento: 220000, margem: 130000 },
   };
   
-  const mult = multiplicadores[ano] || 0.5;
+  const dados = dadosPorAno[ano] || { feeAntecipacao: 100000, feeFechamento: 50000, margem: 30000 };
   
-  // Valores base para novos fundos (projeção de vendas/prospecção)
-  const baseValues = {
-    receitaTotalProjetada: 450000,
-    receitaProjetadaFee: 180000,
-    receitaProjetadaFeeAntecipacao: 108000, // 60% do FEE
-    receitaProjetadaFeeFechamento: 72000, // 40% do FEE
-    receitaProjetadaConviteExtra: 150000,
-    receitaProjetadaMargemFechamento: 120000,
-    feeJaRecebido: 0, // Novos fundos ainda não receberam
-    feeAReceber: 180000,
-    convitesExtrasVendidos: 125000,
-    margemMediaAplicada: 5.5,
-    fundosAtivos: 5,
-    fundosFechamentoAnoAtual: 2,
-  };
+  // Receita Total = soma das 3 fontes de receita
+  const receitaTotal = dados.feeAntecipacao + dados.feeFechamento + dados.margem;
   
-  // Aplicar multiplicador
   return {
-    receitaTotalProjetada: Math.round(baseValues.receitaTotalProjetada * mult),
-    receitaProjetadaFee: Math.round(baseValues.receitaProjetadaFee * mult),
-    receitaProjetadaFeeAntecipacao: Math.round(baseValues.receitaProjetadaFeeAntecipacao * mult),
-    receitaProjetadaFeeFechamento: Math.round(baseValues.receitaProjetadaFeeFechamento * mult),
-    receitaProjetadaConviteExtra: Math.round(baseValues.receitaProjetadaConviteExtra * mult),
-    receitaProjetadaMargemFechamento: Math.round(baseValues.receitaProjetadaMargemFechamento * mult),
-    feeJaRecebido: 0, // Novos fundos sempre começam com 0
-    feeAReceber: Math.round(baseValues.feeAReceber * mult),
-    convitesExtrasVendidos: Math.round(baseValues.convitesExtrasVendidos * mult),
-    margemMediaAplicada: baseValues.margemMediaAplicada,
-    fundosAtivos: Math.max(1, Math.round(baseValues.fundosAtivos * mult)),
-    fundosFechamentoAnoAtual: Math.max(0, Math.round(baseValues.fundosFechamentoAnoAtual * mult)),
+    receitaTotalProjetada: receitaTotal,
+    receitaProjetadaFee: dados.feeAntecipacao + dados.feeFechamento,
+    receitaProjetadaFeeAntecipacao: dados.feeAntecipacao,
+    receitaProjetadaFeeFechamento: dados.feeFechamento,
+    receitaProjetadaConviteExtra: 0,
+    receitaProjetadaMargemFechamento: dados.margem,
+    feeJaRecebido: 0,
+    feeAReceber: dados.feeAntecipacao + dados.feeFechamento,
+    convitesExtrasVendidos: 0,
+    margemMediaAplicada: 5.5,
+    fundosAtivos: Math.max(1, Math.round((ano - 2025) * 2)),
+    fundosFechamentoAnoAtual: Math.max(0, Math.round((ano - 2026) * 1.5)),
   };
 }
 

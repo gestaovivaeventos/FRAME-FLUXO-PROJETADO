@@ -31,7 +31,7 @@ export default function CardsVisaoGeral({ resumo, corTema = 'laranja' }: CardsVi
       };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <KPICard
         titulo="Receita Total Projetada"
         valor={resumo.receitaTotalProjetada}
@@ -57,15 +57,6 @@ export default function CardsVisaoGeral({ resumo, corTema = 'laranja' }: CardsVi
         icone="calendar"
         cor={coresCards.feeFechamento}
         descricao="40% do FEE no fechamento do fundo"
-      />
-      
-      <KPICard
-        titulo="Projeção Convite Extra"
-        valor={resumo.receitaProjetadaConviteExtra}
-        formato="moeda"
-        icone="gift"
-        cor={coresCards.conviteExtra}
-        descricao="Valor líquido após margem"
       />
       
       <KPICard
