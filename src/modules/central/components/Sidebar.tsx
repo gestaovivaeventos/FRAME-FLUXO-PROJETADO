@@ -46,6 +46,7 @@ const getDashboardGroups = (accessLevel: number): DashboardGroup[] => {
         { id: 'vendas', label: 'Dashboard Vendas', path: '/vendas', icon: 'money' },
         { id: 'pex', label: 'Dashboard PEX', path: '/pex', icon: 'dashboard' },
         { id: 'carteira', label: 'Dashboard Carteira', path: '/carteira', icon: 'wallet' },
+        { id: 'fluxo-projetado', label: 'Fluxo Projetado', path: '/fluxo-projetado', icon: 'flow' },
       ],
     },
   ];
@@ -104,6 +105,11 @@ const icons: Record<string, JSX.Element> = {
   wallet: (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    </svg>
+  ),
+  flow: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
     </svg>
   ),
   network: (
@@ -387,7 +393,31 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="p-3 overflow-y-auto h-[calc(100vh-4rem)] lg:h-[calc(100vh-80px)]">
+        <nav 
+          className="p-3 h-[calc(100vh-8rem)] lg:h-[calc(100vh-140px)]"
+          style={{
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#FF6600 #2d3139',
+          }}
+        >
+          <style jsx>{`
+            nav::-webkit-scrollbar {
+              width: 6px;
+            }
+            nav::-webkit-scrollbar-track {
+              background: #2d3139;
+              border-radius: 3px;
+            }
+            nav::-webkit-scrollbar-thumb {
+              background: linear-gradient(180deg, #FF6600 0%, #cc5200 100%);
+              border-radius: 3px;
+            }
+            nav::-webkit-scrollbar-thumb:hover {
+              background: linear-gradient(180deg, #ff7a1a 0%, #FF6600 100%);
+            }
+          `}</style>
           {/* Barra de Pesquisa */}
           <div style={{ position: 'relative', marginBottom: '20px' }}>
             <div style={{

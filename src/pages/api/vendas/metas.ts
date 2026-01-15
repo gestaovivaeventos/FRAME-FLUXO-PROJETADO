@@ -1,14 +1,16 @@
 /**
  * API Route para buscar dados de metas do Google Sheets
  * Com cache centralizado e deduplicação de requests
+ * Usa Service Account para autenticação
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getSheetData, CACHE_TTL } from '@/lib/sheets-client';
 import cache from '@/lib/cache';
 
-// TTL: 10 minutos para metas (mudam pouco)
+// Cache key e TTL
 const CACHE_KEY = 'vendas:metas';
-const CACHE_TTL = 10 * 60 * 1000;
+const SHEET_NAME = process.env.NEXT_PUBLIC_SHEET_METAS || 'metas';
 
 export default async function handler(
   req: NextApiRequest,
@@ -21,33 +23,8 @@ export default async function handler(
       cache.invalidate(CACHE_KEY);
     }
 
-    // Usar cache com deduplicação
-    const rows = await cache.getOrFetch(
-      CACHE_KEY,
-      async () => {
-        const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_METAS;
-        const SHEET_NAME = process.env.NEXT_PUBLIC_SHEET_METAS || 'metas';
-        const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-
-        if (!SPREADSHEET_ID || !API_KEY) {
-          throw new Error('Variáveis de ambiente do Google Sheets não configuradas');
-        }
-
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
-        
-        console.log('[Cache] Fetching: vendas:metas');
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Falha ao buscar dados: ${errorText}`);
-        }
-
-        const data = await response.json();
-        return data.values || [];
-      },
-      CACHE_TTL
-    );
+    console.log('[Cache] Fetching: vendas:metas');
+    const rows = await getSheetData(SHEET_NAME, CACHE_KEY, CACHE_TTL.METAS);
 
     // Headers de cache para o browser
     res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
