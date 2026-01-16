@@ -371,3 +371,98 @@ export function gerarResumoNovosFundosPorAno(ano: number): ResumoProjecao {
 
 export const RESUMO_MOCK = calcularResumoProjecao(FUNDOS_MOCK, 2026);
 export const GRAFICO_MOCK = gerarDadosGraficoProjecao(2026);
+
+// ============================================
+// Dados Fluxo Anual (Novo Layout)
+// ============================================
+
+export interface DadosFluxoAnualMock {
+  ano: number;
+  receitaCarteira: number;
+  receitaNovosVendas: number;
+  subtotal: number;
+  custo: number;
+  saldo: number;
+  isAtual: boolean;
+}
+
+export function gerarDadosFluxoAnual(): DadosFluxoAnualMock[] {
+  const anoAtual = new Date().getFullYear();
+  
+  // Dados baseados na tabela do usuário (valores ajustados)
+  const dadosPorAno: Record<number, Omit<DadosFluxoAnualMock, 'isAtual'>> = {
+    2025: {
+      ano: 2025,
+      receitaCarteira: 120000,
+      receitaNovosVendas: 15000,
+      subtotal: 135000,
+      custo: -12500,
+      saldo: 122500,
+    },
+    2026: {
+      ano: 2026,
+      receitaCarteira: 650000,
+      receitaNovosVendas: 100000,
+      subtotal: 750000,
+      custo: -85000,
+      saldo: 665000,
+    },
+    2027: {
+      ano: 2027,
+      receitaCarteira: 980000,
+      receitaNovosVendas: 160000,
+      subtotal: 1140000,
+      custo: -125000,
+      saldo: 1015000,
+    },
+    2028: {
+      ano: 2028,
+      receitaCarteira: 750000,
+      receitaNovosVendas: 330000,
+      subtotal: 1080000,
+      custo: -180000,
+      saldo: 900000,
+    },
+    2029: {
+      ano: 2029,
+      receitaCarteira: 470000,
+      receitaNovosVendas: 520000,
+      subtotal: 990000,
+      custo: -210000,
+      saldo: 780000,
+    },
+  };
+
+  const resultado: DadosFluxoAnualMock[] = [];
+  
+  for (let i = 0; i < 5; i++) {
+    const ano = anoAtual + i;
+    const dados = dadosPorAno[ano];
+    
+    if (dados) {
+      resultado.push({
+        ...dados,
+        isAtual: ano === anoAtual,
+      });
+    } else {
+      // Gerar dados para anos não mapeados
+      const baseCarteira = 300000 + (i * 50000);
+      const baseNovos = 100000 + (i * 80000);
+      const subtotal = baseCarteira + baseNovos;
+      const custo = -(subtotal * 0.12); // 12% de custo
+      const saldo = subtotal + custo;
+      
+      resultado.push({
+        ano,
+        receitaCarteira: baseCarteira,
+        receitaNovosVendas: baseNovos,
+        subtotal,
+        custo,
+        saldo,
+        isAtual: ano === anoAtual,
+      });
+    }
+  }
+  
+  return resultado;
+}

@@ -12,3 +12,6 @@ export { default as TabelaFundos } from './TabelaFundos';
 export { default as Filtros } from './Filtros';
 export { default as Header } from './Header';
 export { default as CardReceitaAnual } from './CardReceitaAnual';
+export { default as FluxoAnualCard } from './FluxoAnualCard';
+export { default as ResumoTotaisCard } from './ResumoTotaisCard';
+export type { DadosFluxoAnual } from './FluxoAnualCard';
